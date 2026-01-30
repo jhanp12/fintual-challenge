@@ -42,7 +42,7 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/TU_USUARIO/fintual-challenge.git
+git clone https://github.com/jhanp12/fintual-challenge.git
 cd fintual-challenge
 ```
 
@@ -97,7 +97,7 @@ Los archivos compilados estarán en el directorio `dist/`
 - **Barras** : Mejor para comparar valores específicos
 - **Radar** : Vista alternativa de datos
 
-## 💾 Estructura del Proyecto
+## Estructura del Proyecto
 ```
 fintual-challenge/
 ├── src/
@@ -190,7 +190,7 @@ La aplicación maneja:
 - Fechas sin información
 - Límite de fondos en comparación (máximo 4)
 
-## 📱 Compatibilidad
+## Compatibilidad
 
 - Chrome, Firefox, Safari, Edge (últimas versiones)
 - Responsive: Desktop, Tablet, Mobile
@@ -199,7 +199,5 @@ La aplicación maneja:
 ## Autor
 
 **[JHAN PIERRE BECERRA HUAYTALLA]**
-- GitHub: [@tu-usuario](https://github.com/tu-usuario)
-- LinkedIn: [Tu Perfil](https://linkedin.com/in/tu-perfil)
-
+- GitHub: [@tu-usuario](https://github.com/jhanp12)
 ---
