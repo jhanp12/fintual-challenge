@@ -1,0 +1,248 @@
+<div class="container">
+  <div class="header">
+    <h1>Desafío Fintual</h1>
+    <p>Análisis de Variación Mensual de Fondos de Inversión</p>
+  </div>
+
+  <div class="filters-card">
+    <div class="filters-title">Filtros de Búsqueda</div>
+    
+    <div class="compare-toggle">
+      <button 
+        class="toggle-btn" 
+        [class.active]="compareMode"
+        (click)="toggleCompareMode()">
+        {{ compareMode ? '🔄 Modo Comparación Activado' : '📊 Activar Modo Comparación' }}
+      </button>
+      <p class="compare-hint" *ngIf="compareMode">
+        Selecciona hasta 4 fondos para comparar
+      </p>
+    </div>
+
+    <div class="filters" *ngIf="!compareMode">
+      <div class="filter-group">
+        <label for="type-select">Tipo de Fondo:</label>
+        <select 
+          id="type-select" 
+          [(ngModel)]="selectedType" 
+          (change)="onTypeChange()"
+          [disabled]="loading">
+          <option value="">Todos los tipos</option>
+          <option *ngFor="let type of fundTypes" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="fund-select">Seleccionar Fondo:</label>
+        <select 
+          id="fund-select" 
+          [(ngModel)]="selectedFund" 
+          (change)="onFilterChange()"
+          [disabled]="loading">
+          <option [value]="null">Seleccione un fondo</option>
+          <option *ngFor="let fund of filteredFunds" [value]="fund.id">
+            {{ fund.name }} ({{ fund.type }})
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="start-date">Fecha Inicio:</label>
+        <input 
+          type="date" 
+          id="start-date" 
+          [(ngModel)]="startDate"
+          (change)="onFilterChange()"
+          [disabled]="loading || !selectedFund">
+      </div>
+
+      <div class="filter-group">
+        <label for="end-date">Fecha Fin:</label>
+        <input 
+          type="date" 
+          id="end-date" 
+          [(ngModel)]="endDate"
+          (change)="onFilterChange()"
+          [disabled]="loading || !selectedFund">
+      </div>
+    </div>
+
+    <div class="compare-mode-selection" *ngIf="compareMode">
+      <div class="filter-group">
+        <label for="type-select-compare">Filtrar por Tipo:</label>
+        <select 
+          id="type-select-compare" 
+          [(ngModel)]="selectedType" 
+          (change)="onTypeChange()"
+          [disabled]="loading">
+          <option value="">Todos los tipos</option>
+          <option *ngFor="let type of fundTypes" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+      </div>
+
+      <div class="funds-grid">
+        <div 
+          *ngFor="let fund of filteredFunds" 
+          class="fund-card"
+          [class.selected]="isFundSelected(fund.id)"
+          (click)="toggleFundSelection(fund.id)">
+          <div class="fund-card-header">
+            <span class="fund-icon">{{ isFundSelected(fund.id) ? '✅' : '⬜' }}</span>
+            <span class="fund-name">{{ fund.name }}</span>
+          </div>
+          <span class="fund-type">{{ fund.type }}</span>
+        </div>
+      </div>
+
+      <div class="date-filters" *ngIf="selectedFunds.length > 0">
+        <div class="filter-group">
+          <label for="start-date-compare">Fecha Inicio:</label>
+          <input 
+            type="date" 
+            id="start-date-compare" 
+            [(ngModel)]="startDate"
+            (change)="onFilterChange()"
+            [disabled]="loading">
+        </div>
+
+        <div class="filter-group">
+          <label for="end-date-compare">Fecha Fin:</label>
+          <input 
+            type="date" 
+            id="end-date-compare" 
+            [(ngModel)]="endDate"
+            (change)="onFilterChange()"
+            [disabled]="loading">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-type-selector" *ngIf="(monthlyVariations.length > 0 || selectedFunds.length > 0) && !loading">
+    <label>Tipo de Gráfico:</label>
+    <div class="chart-type-buttons">
+      <button 
+        *ngFor="let type of chartTypes"
+        class="chart-type-btn"
+        [class.active]="chartType === type.value"
+        (click)="changeChartType(type.value)">
+        {{ type.icon }} {{ type.label }}
+      </button>
+    </div>
+  </div>
+
+  <div class="statistics-card" *ngIf="statistics && !compareMode && !loading">
+    <h3>📈 Estadísticas del Fondo</h3>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-label">Variación Promedio</span>
+        <span class="stat-value" [class.positive]="statistics.average > 0" [class.negative]="statistics.average < 0">
+          {{ statistics.average }}%
+        </span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Mejor Mes</span>
+        <span class="stat-value positive">
+          {{ statistics.bestMonth.month }}<br>
+          <small>{{ statistics.bestMonth.variation }}%</small>
+        </span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Peor Mes</span>
+        <span class="stat-value negative">
+          {{ statistics.worstMonth.month }}<br>
+          <small>{{ statistics.worstMonth.variation }}%</small>
+        </span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Volatilidad</span>
+        <span class="stat-value">
+          {{ statistics.volatility }}%
+        </span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Meses Positivos</span>
+        <span class="stat-value positive">
+          {{ statistics.positiveMonths }}
+        </span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Meses Negativos</span>
+        <span class="stat-value negative">
+          {{ statistics.negativeMonths }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <p>Cargando datos...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <div class="chart-container" *ngIf="(monthlyVariations.length > 0 || selectedFunds.length > 0) && !loading">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <div *ngIf="!loading && ((selectedFund && monthlyVariations.length === 0) || (compareMode && selectedFunds.length === 0))" class="info-message">
+    <p>📭 {{ compareMode ? 'Selecciona fondos para comparar' : 'No hay datos disponibles para los filtros seleccionados' }}</p>
+  </div>
+
+  <div class="table-container" *ngIf="!loading && monthlyVariations.length > 0 && !compareMode">
+    <div class="table-header">
+      <h2>Datos de Variación Mensual</h2>
+      <div class="table-search">
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Buscar por mes (ej: 2024-01)..."
+          [(ngModel)]="searchTerm"
+          (input)="filterTable()">
+        <button class="clear-search" (click)="clearSearch()" *ngIf="searchTerm">
+          Limpiar
+        </button>
+      </div>
+    </div>
+    
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" (click)="sortBy('month')">Mes</th>
+            <th class="sortable" (click)="sortBy('variation')">Variación (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let variation of filteredVariations">
+            <td>{{ variation.month }}</td>
+            <td [class.positive]="variation.variation > 0" 
+                [class.negative]="variation.variation < 0">
+              {{ variation.variation }}%
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-content">
+      <h3>Desafío Practicantes 2026</h3>
+      <p>Desarrollado con Angular 17 + TypeScript + Chart.js</p>
+      <p>API de Fintual | Análisis de Fondos de Inversión</p>
+      <div class="footer-links">
+        <a href="https://fintual.cl" target="_blank">Fintual.cl</a>
+        <a href="https://angular.io" target="_blank">Angular</a>
+        <a href="https://www.chartjs.org" target="_blank">Chart.js</a>
+      </div>
+    </div>
+  </div>
+</div>
